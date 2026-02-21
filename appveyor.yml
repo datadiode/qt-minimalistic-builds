@@ -1,0 +1,32 @@
+environment:
+  matrix:
+    - job_name: msvc2019-x86_64
+      platform: x64
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    - job_name: msvc2022-x86_64
+      platform: x64
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+
+build_script:
+  - for /f "tokens=*" %%p in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath') do call "%%p\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM:X=x% 10.0.26100.0
+  - for %%v in (6.4.2 %APPVEYOR_REPO_TAG_NAME%) do if "%%v" neq "%%~nv" set "version=%%v" & set "version_base=%%~nv"
+  - curl -LO https://download.qt.io/archive/qt/%version_base%/%version%/single/qt-everywhere-src-%version%.zip
+  - tar -xf qt-everywhere-src-%version%.zip
+  - set openssl_base_folder=C:\OpenSSL-v30-Win64
+  - mkdir bld
+  - cd bld
+  - call "..\qt-everywhere-src-%version%\configure.bat" -debug-and-release -opensource -confirm-license -platform win32-msvc -cmake-generator "Ninja Multi-Config" -no-opengl -no-widgets -no-dbus -no-icu -no-fontconfig -no-freetype -nomake examples -nomake tests -skip qt3d -skip qtactiveqt -skip qtandroidextras -skip qtcharts -skip qtcoap -skip qtconnectivity -skip qtdatavis3d -skip qtdeclarative -skip qtdoc -skip qthttpserver -skip qtgamepad -skip qtgraphicaleffects -skip qtlocation -skip qtlottie -skip qtmacextras -skip qtmultimedia -skip qtpurchasing -skip qtquick3d -skip qtquickcontrols -skip qtquickcontrols2 -skip qtquicktimeline -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtshadertools -skip qtspeech -skip qtsvg -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebengine -skip qtwebsockets -skip qtwebview -skip qtwebglplugin -skip qtwinextras -skip qtx11extras -skip qtxmlpatterns -skip qttools -skip qtgraphs -skip qtimageformats -skip qtlanguageserver -skip qtmqtt -skip qtopcua -skip qtpositioning -skip qtquick3dphysics -skip qtquickeffectmaker -skip qtremoteobjects -skip qtsql -skip qttranslations -skip qt5compat -no-feature-assistant -no-feature-designer -feature-relocatable -qt-zlib -openssl-linked -- -DOPENSSL_ROOT_DIR="%openssl_base_folder%" -DOPENSSL_USE_STATIC_LIBS=ON
+  - cmake --build .
+  - 7z a ..\qt-%version%-%APPVEYOR_JOB_NAME%.7z -ir!qtbase\bin\*.dll -ir!qtbase\bin\*.pdb -ir!qtbase\plugins\*.dll -ir!qtbase\plugins\*.pdb
+
+deploy:
+  provider: GitHub
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+  force_update: true
+  on:
+    APPVEYOR_REPO_TAG: true
+  auth_token:
+    secure: Ff432aLyTjRB02PAo9YoH+iRttges/GD2mpfggEdsZ+oDFoeYYzu3Z52IzsH+E1y
+
+artifacts:
+  - path: '*.7z'
