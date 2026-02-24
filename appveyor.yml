@@ -10,14 +10,17 @@ environment:
 build_script:
   - for /f "tokens=*" %%p in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath') do call "%%p\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM:X=x% 10.0.26100.0
   - for %%v in (6.4.2 %APPVEYOR_REPO_TAG_NAME%) do if "%%v" neq "%%~nv" set "version=%%v" & set "version_base=%%~nv"
-  - curl -LO https://download.qt.io/archive/qt/%version_base%/%version%/single/qt-everywhere-src-%version%.zip
-  - tar -xf qt-everywhere-src-%version%.zip
+  - curl -fLO https://download.qt.io/archive/qt/%version_base%/%version%/submodules/qtbase-everywhere-src-%version%.zip
+  - tar -xf qtbase-everywhere-src-%version%.zip
   - set openssl_base_folder=C:\OpenSSL-v30-Win64
+  - set CL=/D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
+  - set LINK=/INCREMENTAL:NO
+  - set CMAKE_POLICY_VERSION_MINIMUM=3.5
   - mkdir bld
   - cd bld
-  - call "..\qt-everywhere-src-%version%\configure.bat" -debug-and-release -opensource -confirm-license -platform win32-msvc -cmake-generator "Ninja Multi-Config" -no-opengl -no-widgets -no-dbus -no-icu -no-fontconfig -system-freetype -nomake examples -nomake tests -skip qt3d -skip qtactiveqt -skip qtandroidextras -skip qtcharts -skip qtcoap -skip qtconnectivity -skip qtdatavis3d -skip qtdeclarative -skip qtdoc -skip qthttpserver -skip qtgamepad -skip qtgraphicaleffects -skip qtlocation -skip qtlottie -skip qtmacextras -skip qtmultimedia -skip qtpurchasing -skip qtquick3d -skip qtquickcontrols -skip qtquickcontrols2 -skip qtquicktimeline -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtshadertools -skip qtspeech -skip qtsvg -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebengine -skip qtwebsockets -skip qtwebview -skip qtwebglplugin -skip qtwinextras -skip qtx11extras -skip qtxmlpatterns -skip qttools -skip qtgraphs -skip qtimageformats -skip qtlanguageserver -skip qtmqtt -skip qtopcua -skip qtpositioning -skip qtquick3dphysics -skip qtquickeffectmaker -skip qtremoteobjects -skip qtsql -skip qttest -skip qttranslations -skip qt5compat -no-feature-assistant -no-feature-designer -feature-relocatable -qt-zlib -- -DOPENSSL_ROOT_DIR="%openssl_base_folder%" -DOPENSSL_USE_STATIC_LIBS=ON
+  - call "..\qtbase-everywhere-src-%version%\configure.bat" -debug-and-release -opensource -confirm-license -platform win32-msvc -cmake-generator "Ninja Multi-Config" -no-opengl -no-widgets -no-dbus -no-icu -no-fontconfig -no-harfbuzz -system-freetype -nomake examples -nomake tests -skip qt3d -skip qtactiveqt -skip qtandroidextras -skip qtcharts -skip qtcoap -skip qtconnectivity -skip qtdatavis3d -skip qtdeclarative -skip qtdoc -skip qthttpserver -skip qtgamepad -skip qtgraphicaleffects -skip qtlocation -skip qtlottie -skip qtmacextras -skip qtmultimedia -skip qtpurchasing -skip qtquick3d -skip qtquickcontrols -skip qtquickcontrols2 -skip qtquicktimeline -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtshadertools -skip qtspeech -skip qtsvg -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebengine -skip qtwebsockets -skip qtwebview -skip qtwebglplugin -skip qtwinextras -skip qtx11extras -skip qtxmlpatterns -skip qttools -skip qtgraphs -skip qtimageformats -skip qtlanguageserver -skip qtmqtt -skip qtopcua -skip qtpositioning -skip qtquick3dphysics -skip qtquickeffectmaker -skip qtremoteobjects -skip qtsql -skip qttest -skip qttranslations -skip qt5compat -feature-relocatable -qt-zlib -- -DOPENSSL_ROOT_DIR="%openssl_base_folder%" -DOPENSSL_USE_STATIC_LIBS=ON
   - cmake --build . --parallel
-  - 7z a ..\qt-%version%-%APPVEYOR_JOB_NAME%.7z -ir!qtbase\bin\*.dll -ir!qtbase\bin\*.pdb -ir!qtbase\plugins\*.dll -ir!qtbase\plugins\*.pdb config.summary ..\qt-everywhere-src-%version%\LICENSE.*GPL*
+  - 7z a ..\qtbase-%version%-%APPVEYOR_JOB_NAME%.7z -ir!bin\*.dll -ir!bin\*.pdb -ir!plugins\*.dll -ir!plugins\*.pdb config.summary ..\qtbase-everywhere-src-%version%\LICENSE.*GPL*
 
 deploy:
   provider: GitHub
