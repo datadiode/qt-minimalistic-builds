@@ -10,7 +10,7 @@ environment:
 build_script:
   - for /f "tokens=*" %%p in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath') do call "%%p\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM:X=x% 10.0.26100.0
   - for %%v in (6.4.2 %APPVEYOR_REPO_TAG_NAME%) do if "%%v" neq "%%~nv" set "version=%%v" & set "version_base=%%~nv"
-  - curl -fLO https://download.qt.io/archive/qt/%version_base%/%version%/submodules/qtbase-everywhere-src-%version%.zip
+  - curl -fLO https://download.qt.io/archive/qt/%version_base%/%version%/submodules/qtbase-everywhere-src-%version%.zip || curl -fL https://download.qt.io/archive/qt/%version_base%/%version%/submodules/qtbase-everywhere-opensource-src-%version%.zip -o qtbase-everywhere-src-%version%.zip
   - tar -xf qtbase-everywhere-src-%version%.zip
   - set openssl_base_folder=C:\OpenSSL-v30-Win64
   - set CL=/D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
